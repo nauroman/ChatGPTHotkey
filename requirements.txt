@@ -1,0 +1,6 @@
+﻿openai
+keyboard
+pyperclip
+argparse
+pyautogui
+os
