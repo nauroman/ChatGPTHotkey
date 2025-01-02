@@ -80,7 +80,7 @@ def get_arguments():
 
     args = parser.parse_args()
 
-    settings["api_key"] = args.api_key if args.api_key else settings["api_key"]
+    settings["api_key"] = args.api_key if args.api_key and "openai_api_key" not in args.api_key else settings["api_key"]
     settings["hotkey"] = args.hotkey if args.hotkey else settings["hotkey"]
     settings["model"] = args.model if args.model else settings["model"]
     settings["prompt"] = args.prompt if args.prompt else settings["prompt"]
