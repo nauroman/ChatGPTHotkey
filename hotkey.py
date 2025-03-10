@@ -7,6 +7,7 @@ import threading
 import logging
 from typing import Optional
 import subprocess
+import argparse
 
 import pyautogui
 import pyperclip
@@ -21,7 +22,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 # Singleton pattern to ensure only one instance runs
 class SingletonMeta(type):
     _instances = {}
@@ -34,10 +34,10 @@ class SingletonMeta(type):
                 cls._instances[cls] = instance
             return cls._instances[cls]
 
-
 # Main application class
 class TextImprover(metaclass=SingletonMeta):
-    def __init__(self):
+    def __init__(self, api_key: str = None, hotkey: str = None, model: str = None, prompt: str = None):
+        # Default settings
         self.settings = {
             "api_key": os.environ.get("OPENAI_API_KEY"),
             "model": "gpt-4o-mini",
@@ -51,9 +51,19 @@ class TextImprover(metaclass=SingletonMeta):
                         'here is the improved version.' Text to correct:"""
         }
 
+        # Override defaults with command-line arguments if provided
+        if api_key:
+            self.settings["api_key"] = api_key
+        if hotkey:
+            self.settings["hotkey"] = hotkey
+        if model:
+            self.settings["model"] = model
+        if prompt:
+            self.settings["prompt"] = prompt
+
         # Validate API key
         if not self.settings["api_key"]:
-            logger.error("OPENAI_API_KEY environment variable not set")
+            logger.error("API key not provided via argument or OPENAI_API_KEY environment variable")
             sys.exit(1)
 
         self.client = OpenAI(api_key=self.settings["api_key"])
@@ -163,7 +173,6 @@ class TextImprover(metaclass=SingletonMeta):
             logger.info("Shutting down...")
             self.running = False
 
-
 def check_single_instance() -> bool:
     """Check if another instance is already running."""
     import psutil
@@ -181,6 +190,14 @@ def check_single_instance() -> bool:
 
     return instances == 0
 
+def parse_args():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="Text Improver Hotkey Script")
+    parser.add_argument("--api_key", help="OpenAI API key")
+    parser.add_argument("--hotkey", help="Hotkey to trigger the script (e.g., '<ctrl>+<f13>')")
+    parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-4o-mini')")
+    parser.add_argument("--prompt", help="Prompt for the OpenAI model")
+    return parser.parse_args()
 
 def main():
     """Main entry point."""
@@ -188,8 +205,16 @@ def main():
         logger.error("Another instance is already running")
         sys.exit(1)
 
+    # Parse command-line arguments
+    args = parse_args()
+
     logger.info("Starting Text Improver...")
-    app = TextImprover()
+    app = TextImprover(
+        api_key=args.api_key,
+        hotkey=args.hotkey,
+        model=args.model,
+        prompt=args.prompt
+    )
     app.run()
 
 if __name__ == "__main__":
