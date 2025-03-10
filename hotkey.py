@@ -1,117 +1,150 @@
 ﻿import sys
 import subprocess
-
-# Attempt to install required packages if not present
-required_packages = ["openai", "keyboard", "pyperclip", "pyautogui", "os", "argparse"]
-for pkg in required_packages:
-    try:
-        __import__(pkg)
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
-
-import keyboard
-import pyperclip
-import pyautogui
 import os
-import argparse
+import time
+import psutil
+import pyautogui
+from pynput.keyboard import GlobalHotKeys, Key, Controller as KeyboardController
+import pyperclip
 from openai import OpenAI
 
-settings = {"api_key": os.environ.get("OPENAI_API_KEY"), "model": "gpt-4o-mini", "hotkey": "ctrl+f11",
-            "prompt": "The GPT's role is to correct texts to reflect educated polite American English, adjusting grammar, syntax, and idioms while preserving meaning. Translate into English if necessary. It should maintain clarity, accuracy, and a neutral tone, avoiding unnecessary changes or complex vocabulary. The GPT should not ask for clarification; it should simply provide the updated text without any introductions or additions such as 'here is the improved version.' Text to correct :"}
+# Auto-install required packages
+required_packages = ['psutil', 'pynput', 'pyperclip', 'openai', 'pyautogui']
+for package in required_packages:
+    try:
+        __import__(package)
+    except ImportError:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+
+# Configuration and client setup
+settings = {
+    "api_key": os.environ.get("OPENAI_API_KEY"),
+    "model": "gpt-4o-mini",
+    "hotkey": "ctrl+f13",
+    "prompt": "The GPT's role is to correct texts to reflect educated polite American English, adjusting grammar, syntax, and idioms while preserving meaning. Translate into English if necessary. It should maintain clarity, accuracy, and a neutral tone, avoiding unnecessary changes or complex vocabulary. The GPT should not ask for clarification; it should simply provide the updated text without any introductions or additions such as 'here is the improved version.' Text to correct :"
+}
+
+if not settings["api_key"]:
+    print("Error: OPENAI_API_KEY environment variable is not set.")
+    sys.exit(1)
 
 client = OpenAI()
+keyboard = KeyboardController()
+listener = None
 
 
 def improve_text(text: str) -> str:
-    prompt = (settings["prompt"].strip()) + f"\n\n{text}"
+    prompt = f"{settings['prompt'].strip()}\n\n{text}"
 
     try:
         completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt}
-                    ],
-                }
-            ],
             model=settings["model"],
+            messages=[{"role": "user", "content": prompt}]
         )
-        improved_text = completion.choices[0].message.content.strip()
+        return completion.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Error with OpenAI API: {e}")
-        improved_text = text  # Return the original text in case of error
-    return improved_text
+        print(f"OpenAI API Error: {e}")
+        return text
 
 
-def on_hotkey():
-    # Copy currently selected text
+def on_activate():
+    global listener
+    if listener:
+        listener.stop()
+
+    print("on_activate")
+  #  pyperclip.copy('')
+   # pyautogui.sleep(0.2)
     pyautogui.hotkey("ctrl", "a")
     pyautogui.sleep(0.2)  # small delay to ensure clipboard updates
     pyautogui.hotkey("ctrl", "c")
     pyautogui.sleep(0.2)  # small delay to ensure clipboard updates
     text = pyperclip.paste()
     if not text:
+        start_listener()
         return  # No text found in clipboard
 
     improved = improve_text(text)
 
     pyperclip.copy(improved)
     pyautogui.hotkey("ctrl", "v")
+    # time.sleep(0.2)
+    # pyperclip.copy('')
+    # time.sleep(0.2)
+
+  #  start_listener()
 
 
-def load_settings_from_file():
-    if os.path.exists("settings.txt"):
-        with open("settings.txt", "r") as f:
-            for line in f:
-                key, value = line.strip().split("=")
-                if value.strip():
-                    settings[key] = value
+    # try:
+    #     # Clear clipboard before operations
+    #     pyperclip.copy('')
+    #     time.sleep(0.2)
+    #
+    #     # Select all and copy
+    #     with keyboard.pressed(Key.ctrl):
+    #         keyboard.press('a')
+    #         keyboard.release('a')
+    #     time.sleep(0.2)
+    #
+    #     with keyboard.pressed(Key.ctrl):
+    #         keyboard.press('c')
+    #         keyboard.release('c')
+    #     time.sleep(0.2)
+    #
+    #     original_text = pyperclip.paste()
+    #     improved_text = improve_text(original_text)
+    #
+    #     # Copy improved text and paste
+    #     pyperclip.copy(improved_text)
+    #     time.sleep(0.2)
+    #
+    #     with keyboard.pressed(Key.ctrl):
+    #         keyboard.press('v')
+    #         keyboard.release('v')
+    #     time.sleep(0.2)
+    #
+    #     # Clear clipboard after operations
+    #     pyperclip.copy('')
+    #
+    # except Exception as e:
+    #     print(f"Processing Error: {e}")
+    # finally:
+    #     start_listener()
 
 
-def get_arguments():
-    parser = argparse.ArgumentParser(description="Load settings for the script.")
-    parser.add_argument("--api_key", type=str, help="OpenAI API key", required=False, default=settings["api_key"])
-    parser.add_argument("--hotkey", type=str, help="Hotkey to trigger the script", required=False,
-                        default=settings["hotkey"])
-    parser.add_argument("--model", type=str, help="OpenAI model to use", required=False, default=settings["model"])
-    parser.add_argument("--prompt", type=str, help="Prompt for the OpenAI model", required=False,
-                        default=settings["prompt"])
-
-    args = parser.parse_args()
-
-    settings["api_key"] = args.api_key if args.api_key and "openai_api_key" not in args.api_key else settings["api_key"]
-    settings["hotkey"] = args.hotkey if args.hotkey else settings["hotkey"]
-    settings["model"] = args.model if args.model else settings["model"]
-    settings["prompt"] = args.prompt if args.prompt else settings["prompt"]
-
-    settings["api_key"] = settings["api_key"].strip()
-    settings["hotkey"] = settings["hotkey"].strip()
-    settings["model"] = settings["model"].strip()
-    settings["prompt"] = settings["prompt"].strip()
+def start_listener():
+    global listener
+    hotkey = '+'.join(f'<{part}>' for part in settings["hotkey"].split('+'))
+    listener = GlobalHotKeys({hotkey: on_activate})
+    listener.start()
 
 
-def start_keyboard():
-    if settings["hotkey"]:
+# Add this function before the main code
+def kill_other_instances():
+    current_pid = os.getpid()
+    current_script = os.path.basename(sys.argv[0]).lower()
+
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            keyboard.add_hotkey(settings["hotkey"], on_hotkey)
-            print(f"Script is running in the background. Press the hotkey {settings["hotkey"]} to improve the text.")
-        except Exception as e:
-            print(f"Error setting hotkey: {e}")
-            pass
-    keyboard.wait("esc")
+            if proc.pid == current_pid:
+                continue
 
+            if proc.info['cmdline'] and len(proc.info['cmdline']) > 0:
+                script_name = os.path.basename(proc.info['cmdline'][0]).lower()
+                if script_name == current_script and 'python' in proc.info['name'].lower():
+                    print(f"Killing duplicate process PID: {proc.pid}")
+                    proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, IndexError):
+            continue
 
-def main():
-    load_settings_from_file()
-    get_arguments()
-    client.api_key = settings["api_key"]
-
+if __name__ == "__main__":
+    kill_other_instances()
+    start_listener()
+    print("Service running. Press Ctrl+F13 to improve text. Press Ctrl+C to exit.")
     try:
-        start_keyboard()
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
-        print("\nScript terminated by user.")
-
-
-if __name__ == '__main__':
-    main()
+        if listener:
+            listener.stop()
+        sys.exit(0)
