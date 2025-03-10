@@ -1,7 +1,5 @@
-﻿openai
+﻿pyautogui
 pyperclip
-argparse
-pyautogui
-psutil
 pynput
-os
+openai
+psutil
