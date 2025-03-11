@@ -7,7 +7,7 @@
 A simple yet powerful Python script to automatically translate and/or improve your text using OpenAI's GPT models. Perfect for quickly fixing grammar, syntax, idioms, and polishing your writing into clear, polite, educated American English—all with a single hotkey press.
 
 ## Why Use This Script?
-- **Instant Text Enhancement:** Improve your writing in seconds with one keystroke.
+- **Instant Text Enhancement:** Translate and/or improve your writing in seconds with one keystroke.
 - **Seamless Workflow:** Copies, enhances, and pastes text automatically—no manual steps needed.
 - **Fully Customizable:** Adjust the hotkey, GPT model, and improvement prompt to suit your needs.
 
@@ -27,25 +27,16 @@ When you press the predefined hotkey (default: `Ctrl+F13`):
 3. **Verify Installation:** Open Command Prompt (Windows key + R, type `cmd`, press Enter) and type `python --version`. If it shows a version number, you're good!
 
 ### Step 2: Clone the Repository
+If you don’t have Git, download the ZIP file from GitHub and extract it manually.
+
 1. **Install Git (Optional):** If you don’t have Git, download it from [git-scm.com](https://git-scm.com/downloads) and install it.
 2. **Open Command Prompt:** Windows key + R, type `cmd`, press Enter.
 3. **Clone the Repository:** Type the following and press Enter:
    ```bash
-   git clone https://github.com/your-username/text-improver.git
-   cd text-improver
+   git clone https://github.com/nauroman/ChatGPTHotkey.git
+   cd ChatGPTHotkey
    ```
-   *Note:* Replace `your-username` with the actual GitHub username hosting the script. If you don’t have Git, download the ZIP file from GitHub and extract it manually.
-
-### Step 3: Install Dependencies
-1. In Command Prompt, make sure you're in the `text-improver` folder (use `cd` if needed).
-2. Run this command:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. If you get errors, install the required libraries manually:
-   ```bash
-   pip install pyautogui pyperclip pynput openai
-   ```
+   *Note:* Replace `your-username` with the actual GitHub username hosting the script.
 
 ---
 
@@ -54,7 +45,7 @@ You’ll need an OpenAI API key to use this script. Here’s how to get one:
 
 1. **Sign Up:** Go to [platform.openai.com](https://platform.openai.com/) and create an account (or log in).
 2. **Navigate to API Keys:** Once logged in, click your profile (top-right), then select "View API Keys."
-3. **Create a Key:** Click "Create New Secret Key," give it a name (e.g., "TextImprover"), and click "Create."
+3. **Create a Key:** Click "Create New Secret Key," give it a name (e.g., "ChatGPTHotkey"), and click "Create."
 4. **Copy the Key:** A key starting with `sk-` will appear. Copy it immediately—it won’t show again! Save it somewhere safe (e.g., a text file).
 
 ---
@@ -80,14 +71,14 @@ To avoid hardcoding your API key in the script (safer and cleaner), add it to Wi
 You can tweak the script in two ways: editing `hotkey.py` directly or using `run_hotkey.bat`. Below are detailed instructions for both.
 
 ### Option 1: Direct Configuration (`hotkey.py`)
-Open `hotkey.py` in a text editor (e.g., Notepad) and adjust these settings in the `TextImprover` class:
+Open `hotkey.py` in a text editor (e.g., Notepad) and adjust these settings in the `hotkey.py`:
 
 ```python
 self.settings = {
     "api_key": "YOUR_OPENAI_API_KEY",  # Replace with your key or leave blank if using environment variables
     "model": "gpt-4o-mini",           # See "Choosing a Model" below
     "hotkey": "<ctrl>+<f13>",         # See "Changing the Hotkey" below
-    "prompt": "Improve this text to sound clear, polite, and professional in American English."  # See "Customizing the Prompt" below
+    "prompt": "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"  # See "Customizing the Prompt" below
 }
 ```
 
@@ -98,7 +89,7 @@ Edit `run_hotkey.bat` with Notepad and set these variables:
 set "API_KEY=YOUR_OPENAI_API_KEY"
 set "HOTKEY=<ctrl>+<f13>"
 set "MODEL=gpt-4o-mini"
-set "PROMPT=Improve this text to sound clear, polite, and professional in American English."
+set "PROMPT=Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
 ```
 
 ---
@@ -129,10 +120,6 @@ The script uses OpenAI’s GPT models. Here’s a breakdown to help you pick:
   - **Performance:** More powerful, better at complex tasks (e.g., creative rewriting).
   - **Pricing:** More expensive (~$5 per 1M input tokens, $15 per 1M output tokens).
   - **Best For:** High-quality, nuanced improvements.
-- **`gpt-3.5-turbo`:**
-  - **Performance:** Older, less advanced but still decent.
-  - **Pricing:** Very cheap (~$0.50 per 1M input tokens, $1.50 per 1M output tokens).
-  - **Best For:** Budget users.
 
 *How to Change:* Update `"model"` in `hotkey.py` or `MODEL` in `run_hotkey.bat`. Check [OpenAI’s pricing page](https://openai.com/pricing) for the latest rates.
 
@@ -140,16 +127,28 @@ The script uses OpenAI’s GPT models. Here’s a breakdown to help you pick:
 
 ## Customizing the Prompt
 The prompt tells the GPT model how to improve your text. The default is:
-- `"Improve this text to sound clear, polite, and professional in American English."`
+- `"The GPT's role is to correct texts to reflect educated polite American English, 
+                        adjusting grammar, syntax, and idioms while preserving meaning. 
+                        Translate into English if necessary. It should maintain clarity, accuracy, 
+                        and a neutral tone, avoiding unnecessary changes or complex vocabulary. 
+                        The GPT should not ask for clarification; it should simply provide the 
+                        corrected text without any introductions or additions such as 
+                        'here is the improved version.' Text to correct:"`
 
 ### How to Change It:
 - **In `hotkey.py`:** Edit the `"prompt"` line.
-- **In `run_hotkey.bat`:** Edit the `PROMPT` variable.
+- **Or in `run_hotkey.bat`:** Edit the `PROMPT` variable.
 
 ### Prompt Ideas for Different Tasks:
-- **Casual Tone:** `"Rewrite this text to sound friendly and informal."`
-- **Technical Clarity:** `"Make this text concise and clear for a technical audience."`
-- **Creative Writing:** `"Enhance this text with vivid, imaginative language."`
+- **Casual Tone:** `"Rewrite this text to sound friendly and informal. The GPT should not ask for clarification; it should simply provide the 
+                        corrected text without any introductions or additions such as 
+                        'here is the improved version.' Text to correct:"`
+- **Technical Clarity:** `"Make this text concise and clear for a technical audience. The GPT should not ask for clarification; it should simply provide the 
+                        corrected text without any introductions or additions such as 
+                        'here is the improved version.' Text to correct:"`
+- **Creative Writing:** `"Enhance this text with vivid, imaginative language. The GPT should not ask for clarification; it should simply provide the 
+                        corrected text without any introductions or additions such as 
+                        'here is the improved version.' Text to correct:"`
 
 *Tip:* Experiment with prompts to match your specific needs!
 
@@ -157,29 +156,38 @@ The prompt tells the GPT model how to improve your text. The default is:
 
 ## Running the Script
 
-### Option 1: Without Batch File
+### Option 1: With Batch File (Windows)
+1. Edit `run_hotkey.bat` with your settings or skip this step if you’ve set environment variable.
+2. Double-click `run_hotkey.bat` or run it from Command Prompt.
+
+### Option 2: Without Batch File
 1. Open Command Prompt.
 2. Navigate to the script folder: `cd path\to\text-improver`.
-3. Run:
+3. Run for default settings:
    ```bash
-   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini
+   python hotkey.py
+   ```
+4. Or run with custom settings:
+   ```bash
+   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini --prompt "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
    ```
    *Note:* Skip `--api_key` if it’s in environment variables.
-
-### Option 2: With Batch File (Windows)
-1. Edit `run_hotkey.bat` with your settings.
-2. Double-click `run_hotkey.bat` or run it from Command Prompt.
 
 ---
 
 ## Adding to Windows Startup (Autorun)
 Make the script run automatically when Windows starts. Here are two easy methods:
 
-### Method 1: Task Scheduler
+### Method 1: Startup Folder
+1. **Open Startup Folder:** Windows key + R, type `shell:startup`, press Enter.
+2. **Create Shortcut:** Drag `run_hotkey.bat` into the folder while holding Alt to create a shortcut.
+3. **Test:** Restart your PC—it should start automatically.
+
+### Method 2: Task Scheduler
 1. **Open Task Scheduler:** Windows key + R, type `taskschd.msc`, press Enter.
 2. **Create Task:**
    - Click "Create Task" (right panel).
-   - Name it (e.g., "TextImprover").
+   - Name it (e.g., "ChatGPTHotkey").
    - Check "Run with highest privileges."
 3. **Trigger:**
    - Tab "Triggers," click "New."
@@ -190,11 +198,6 @@ Make the script run automatically when Windows starts. Here are two easy methods
    - Program/script: `C:\path\to\run_hotkey.bat` (adjust the path).
    - Click "OK."
 5. Save: Click "OK," enter your password if prompted.
-
-### Method 2: Startup Folder
-1. **Open Startup Folder:** Windows key + R, type `shell:startup`, press Enter.
-2. **Create Shortcut:** Drag `run_hotkey.bat` into the folder while holding Alt to create a shortcut.
-3. **Test:** Restart your PC—it should start automatically.
 
 ---
 
