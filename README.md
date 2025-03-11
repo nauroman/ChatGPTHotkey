@@ -1,108 +1,215 @@
-﻿# Text Improver Hotkey Script
+﻿Below is an improved version of your document with detailed, newbie-friendly instructions added as requested. I've enhanced clarity, added step-by-step guidance, and included all the additional sections you asked for while maintaining the original structure.
 
-A simple yet powerful Python script to automatically improve your selected text using OpenAI's GPT models. Ideal for quickly correcting grammar, syntax, idioms, and enhancing the clarity of your texts with educated, polite American English.
+---
+
+# Text Improver Hotkey Script
+
+A simple yet powerful Python script to automatically translate and/or improve your text using OpenAI's GPT models. Perfect for quickly fixing grammar, syntax, idioms, and polishing your writing into clear, polite, educated American English—all with a single hotkey press.
 
 ## Why Use This Script?
-- **Quick Text Improvement:** Instantly enhance your writing with a single hotkey.
-- **Efficient Workflow:** Automatically copies, improves, and pastes your text without manual intervention.
-- **Highly Customizable:** Easily configure your preferred hotkey, GPT model, and custom prompts.
+- **Instant Text Enhancement:** Improve your writing in seconds with one keystroke.
+- **Seamless Workflow:** Copies, enhances, and pastes text automatically—no manual steps needed.
+- **Fully Customizable:** Adjust the hotkey, GPT model, and improvement prompt to suit your needs.
 
 ## How It Works
-Upon pressing a predefined hotkey (Ctrl+F13 by default):
+When you press the predefined hotkey (default: `Ctrl+F13`):
 1. The script selects all text (`Ctrl+A`) and copies it (`Ctrl+C`).
-2. It sends the copied text to OpenAI's GPT model for improvement.
-3. The improved text is automatically pasted back (`Ctrl+V`) into your document or editor.
+2. It sends the text to OpenAI's GPT model for improvement.
+3. The improved text is pasted back (`Ctrl+V`) into your document or editor automatically.
 
 ---
 
-## Installation
+## Installation (Step-by-Step for Beginners)
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/your-username/text-improver.git
-cd text-improver
-```
+### Step 1: Install Python
+1. **Download Python:** Go to [python.org](https://www.python.org/downloads/), download the latest version (3.7 or higher), and run the installer.
+2. **Important:** During installation, check the box "Add Python to PATH" before clicking "Install Now."
+3. **Verify Installation:** Open Command Prompt (Windows key + R, type `cmd`, press Enter) and type `python --version`. If it shows a version number, you're good!
 
-### Step 2: Install Dependencies
-Ensure you have Python installed (3.7+). Then, run:
-```bash
-pip install -r requirements.txt
-```
+### Step 2: Clone the Repository
+1. **Install Git (Optional):** If you don’t have Git, download it from [git-scm.com](https://git-scm.com/downloads) and install it.
+2. **Open Command Prompt:** Windows key + R, type `cmd`, press Enter.
+3. **Clone the Repository:** Type the following and press Enter:
+   ```bash
+   git clone https://github.com/your-username/text-improver.git
+   cd text-improver
+   ```
+   *Note:* Replace `your-username` with the actual GitHub username hosting the script. If you don’t have Git, download the ZIP file from GitHub and extract it manually.
 
-**Note:** If dependencies are missing, the script attempts to install them automatically upon the first run.
+### Step 3: Install Dependencies
+1. In Command Prompt, make sure you're in the `text-improver` folder (use `cd` if needed).
+2. Run this command:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. If you get errors, install the required libraries manually:
+   ```bash
+   pip install pyautogui pyperclip pynput openai
+   ```
 
 ---
 
-## Configuration
+## Getting Started: How to Get an OpenAI API Key
+You’ll need an OpenAI API key to use this script. Here’s how to get one:
 
-You can configure the script directly in the Python file (`hotkey.py`) or by using a batch file (`run_hotkey.bat`).
+1. **Sign Up:** Go to [platform.openai.com](https://platform.openai.com/) and create an account (or log in).
+2. **Navigate to API Keys:** Once logged in, click your profile (top-right), then select "View API Keys."
+3. **Create a Key:** Click "Create New Secret Key," give it a name (e.g., "TextImprover"), and click "Create."
+4. **Copy the Key:** A key starting with `sk-` will appear. Copy it immediately—it won’t show again! Save it somewhere safe (e.g., a text file).
 
-### Direct Configuration (`hotkey.py`)
+---
 
-Adjust settings in the `TextImprover` class:
+## Adding Your OpenAI API Key to Windows Environment Variables
+To avoid hardcoding your API key in the script (safer and cleaner), add it to Windows:
+
+1. **Open System Settings:**
+   - Right-click the Start button, select "System."
+   - Scroll down and click "Advanced system settings."
+   - Click the "Environment Variables" button.
+2. **Add the Key:**
+   - In the "System variables" section, click "New."
+   - Variable name: `OPENAI_API_KEY`
+   - Variable value: Paste your API key (e.g., `sk-xxxx`).
+   - Click "OK" on all open windows to save.
+3. **Verify:** Reopen Command Prompt and type `echo %OPENAI_API_KEY%`. If it shows your key, it’s set!
+
+---
+
+## Configuration Options
+
+You can tweak the script in two ways: editing `hotkey.py` directly or using `run_hotkey.bat`. Below are detailed instructions for both.
+
+### Option 1: Direct Configuration (`hotkey.py`)
+Open `hotkey.py` in a text editor (e.g., Notepad) and adjust these settings in the `TextImprover` class:
 
 ```python
 self.settings = {
-    "api_key": "YOUR_OPENAI_API_KEY",  # Set your API key here or via the OPENAI_API_KEY environment variable
-    "model": "gpt-4o-mini",           # Choose your preferred GPT model
-    "hotkey": "<ctrl>+<f13>",          # Set your desired hotkey
-    "prompt": "Your custom prompt here..."  # Customize the prompt to your needs
+    "api_key": "YOUR_OPENAI_API_KEY",  # Replace with your key or leave blank if using environment variables
+    "model": "gpt-4o-mini",           # See "Choosing a Model" below
+    "hotkey": "<ctrl>+<f13>",         # See "Changing the Hotkey" below
+    "prompt": "Improve this text to sound clear, polite, and professional in American English."  # See "Customizing the Prompt" below
 }
 ```
 
-### Using a Batch File (`run_hotkey.bat`)
-
-Edit the following variables in `run_hotkey.bat`:
+### Option 2: Using a Batch File (`run_hotkey.bat`)
+Edit `run_hotkey.bat` with Notepad and set these variables:
 
 ```batch
 set "API_KEY=YOUR_OPENAI_API_KEY"
 set "HOTKEY=<ctrl>+<f13>"
 set "MODEL=gpt-4o-mini"
-set "PROMPT=Your custom prompt here..."
+set "PROMPT=Improve this text to sound clear, polite, and professional in American English."
 ```
+
+---
+
+## Changing the Hotkey
+The default hotkey is `Ctrl+F13`, but you can change it to something more convenient.
+
+### How to Change It:
+- **In `hotkey.py`:** Edit the `"hotkey"` line (e.g., `"<ctrl>+<shift>+h"`).
+- **In `run_hotkey.bat`:** Edit the `HOTKEY` variable (e.g., `set "HOTKEY=<alt>+<f2>"`).
+- **Examples:**
+  - `<ctrl>+<shift>+h`: Ctrl + Shift + H
+  - `<alt>+<f2>`: Alt + F2
+  - `<ctrl>+t`: Ctrl + T
+
+*Tip:* Avoid common hotkeys like `Ctrl+C` or `Ctrl+V` to prevent conflicts with other programs.
+
+---
+
+## Choosing a Model
+The script uses OpenAI’s GPT models. Here’s a breakdown to help you pick:
+
+- **`gpt-4o-mini` (Default):**
+  - **Performance:** Fast and good for most tasks (grammar, clarity, tone).
+  - **Pricing:** Cheaper (~$0.15 per 1M input tokens, $0.60 per 1M output tokens as of March 2025).
+  - **Best For:** Everyday use, quick edits.
+- **`gpt-4o`:**
+  - **Performance:** More powerful, better at complex tasks (e.g., creative rewriting).
+  - **Pricing:** More expensive (~$5 per 1M input tokens, $15 per 1M output tokens).
+  - **Best For:** High-quality, nuanced improvements.
+- **`gpt-3.5-turbo`:**
+  - **Performance:** Older, less advanced but still decent.
+  - **Pricing:** Very cheap (~$0.50 per 1M input tokens, $1.50 per 1M output tokens).
+  - **Best For:** Budget users.
+
+*How to Change:* Update `"model"` in `hotkey.py` or `MODEL` in `run_hotkey.bat`. Check [OpenAI’s pricing page](https://openai.com/pricing) for the latest rates.
+
+---
+
+## Customizing the Prompt
+The prompt tells the GPT model how to improve your text. The default is:
+- `"Improve this text to sound clear, polite, and professional in American English."`
+
+### How to Change It:
+- **In `hotkey.py`:** Edit the `"prompt"` line.
+- **In `run_hotkey.bat`:** Edit the `PROMPT` variable.
+
+### Prompt Ideas for Different Tasks:
+- **Casual Tone:** `"Rewrite this text to sound friendly and informal."`
+- **Technical Clarity:** `"Make this text concise and clear for a technical audience."`
+- **Creative Writing:** `"Enhance this text with vivid, imaginative language."`
+
+*Tip:* Experiment with prompts to match your specific needs!
 
 ---
 
 ## Running the Script
 
-### Without Batch File (Directly)
-Run the script directly from your terminal or command prompt:
-```bash
-python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini
-```
+### Option 1: Without Batch File
+1. Open Command Prompt.
+2. Navigate to the script folder: `cd path\to\text-improver`.
+3. Run:
+   ```bash
+   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini
+   ```
+   *Note:* Skip `--api_key` if it’s in environment variables.
 
-You can omit arguments if you've set them directly in the Python script or environment variables.
-
-### With Batch File (Recommended for Windows Users)
-
-Double-click the `run_hotkey.bat` file or run it from a command prompt:
-```batch
-run_hotkey.bat
-```
+### Option 2: With Batch File (Windows)
+1. Edit `run_hotkey.bat` with your settings.
+2. Double-click `run_hotkey.bat` or run it from Command Prompt.
 
 ---
 
-## Customizing the Hotkey
+## Adding to Windows Startup (Autorun)
+Make the script run automatically when Windows starts. Here are two easy methods:
 
-The default hotkey is set to `<ctrl>+<f13>`. Change it easily by editing the `HOTKEY` setting in either the Python or batch file. Examples:
-- `<ctrl>+<shift>+h`
-- `<alt>+<f2>`
+### Method 1: Task Scheduler
+1. **Open Task Scheduler:** Windows key + R, type `taskschd.msc`, press Enter.
+2. **Create Task:**
+   - Click "Create Task" (right panel).
+   - Name it (e.g., "TextImprover").
+   - Check "Run with highest privileges."
+3. **Trigger:**
+   - Tab "Triggers," click "New."
+   - Select "At log on," click "OK."
+4. **Action:**
+   - Tab "Actions," click "New."
+   - Action: "Start a program."
+   - Program/script: `C:\path\to\run_hotkey.bat` (adjust the path).
+   - Click "OK."
+5. Save: Click "OK," enter your password if prompted.
+
+### Method 2: Startup Folder
+1. **Open Startup Folder:** Windows key + R, type `shell:startup`, press Enter.
+2. **Create Shortcut:** Drag `run_hotkey.bat` into the folder while holding Alt to create a shortcut.
+3. **Test:** Restart your PC—it should start automatically.
 
 ---
 
 ## Example Use Case
-Imagine you've quickly drafted an important email or document but want to ensure it reads professionally. Simply:
-
-1. Select the text you wrote (or let the script select all automatically).
-2. Press your predefined hotkey.
-3. Enjoy the instantly improved text, pasted back automatically.
+You’ve drafted a rough email:
+- *Original:* "Hey, can u fix this quick? Thx."
+- Press your hotkey (e.g., `Ctrl+F13`).
+- *Improved:* "Hello, could you please address this at your earliest convenience? Thank you!"
 
 ---
 
 ## Troubleshooting
-
-- **API Key Errors:** Ensure your API key is correctly set.
-- **Dependency Issues:** Manually install any missing dependencies using:
+- **API Key Errors:** Double-check your key in `hotkey.py`, `run_hotkey.bat`, or environment variables.
+- **Hotkey Not Working:** Ensure it’s not conflicting with another program; try a different combo.
+- **Dependencies Fail:** Install manually:
   ```bash
   pip install pyautogui pyperclip pynput openai
   ```
@@ -110,6 +217,8 @@ Imagine you've quickly drafted an important email or document but want to ensure
 ---
 
 ## License
-
 Distributed under the MIT License. See `LICENSE` for more details.
 
+---
+
+This version is now much more detailed and beginner-friendly, covering every step with clarity and actionable guidance. Let me know if you’d like further tweaks!
