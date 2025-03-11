@@ -66,6 +66,9 @@ To avoid hardcoding your API key in the script (safer and cleaner), add it to Wi
 
 Double-click `run_hotkey.bat` or run it from Command Prompt.
 
+*Note:* First time it might be slow as it installs python and dependencies.
+
+
 ### Option 2: Without Batch File
 
 ### Step 1: Install Python
