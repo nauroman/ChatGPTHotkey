@@ -19,25 +19,20 @@ When you press the predefined hotkey (default: `Ctrl+F13`):
 
 ---
 
-## Installation (Step-by-Step for Beginners)
+## Installation
 
-### Step 1: Install Python
-1. **Download Python:** Go to [python.org](https://www.python.org/downloads/), download the latest version (3.7 or higher), and run the installer.
-2. **Important:** During installation, check the box "Add Python to PATH" before clicking "Install Now."
-3. **Verify Installation:** Open Command Prompt (Windows key + R, type `cmd`, press Enter) and type `python --version`. If it shows a version number, you're good!
+### Download the ZIP file from GitHub and extract it manually
+https://github.com/nauroman/ChatGPTHotkey/archive/refs/heads/master.zip
 
-### Step 2: Clone the Repository
-If you don’t have Git, download the ZIP file from GitHub and extract it manually.
+### Or Clone the Repository
 
-1. **Install Git (Optional):** If you don’t have Git, download it from [git-scm.com](https://git-scm.com/downloads) and install it.
+1. **If you don’t have Git:**, download it from [git-scm.com](https://git-scm.com/downloads) and install it.
 2. **Open Command Prompt:** Windows key + R, type `cmd`, press Enter.
 3. **Clone the Repository:** Type the following and press Enter:
    ```bash
    git clone https://github.com/nauroman/ChatGPTHotkey.git
    cd ChatGPTHotkey
    ```
-   *Note:* Replace `your-username` with the actual GitHub username hosting the script.
-
 ---
 
 ## Getting Started: How to Get an OpenAI API Key
@@ -65,7 +60,33 @@ To avoid hardcoding your API key in the script (safer and cleaner), add it to Wi
 3. **Verify:** Reopen Command Prompt and type `echo %OPENAI_API_KEY%`. If it shows your key, it’s set!
 
 ---
+## Running the Script
 
+### Option 1: With Batch File (Windows)
+
+Double-click `run_hotkey.bat` or run it from Command Prompt.
+
+### Option 2: Without Batch File
+
+### Step 1: Install Python
+1. **Download Python:** Go to [python.org](https://www.python.org/downloads/), download the latest version (3.7 or higher), and run the installer.
+2. **Important:** During installation, check the box "Add Python to PATH" before clicking "Install Now."
+3. **Verify Installation:** Open Command Prompt (Windows key + R, type `cmd`, press Enter) and type `python --version`. If it shows a version number, you're good!
+
+### Step 2: Run script
+1. Open Command Prompt.
+2. Navigate to the script folder: `cd path\to\ChatGPTHotkey`.
+3. Run for default settings:
+   ```bash
+   python hotkey.py
+   ```
+4. Or run with custom settings:
+   ```bash
+   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini --prompt "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
+   ```
+   *Note:* Skip `--api_key` if it’s in environment variables.
+
+---
 ## Configuration Options
 
 You can tweak the script in two ways: editing `hotkey.py` directly or using `run_hotkey.bat`. Below are detailed instructions for both.
@@ -151,27 +172,6 @@ The prompt tells the GPT model how to improve your text. The default is:
                         'here is the improved version.' Text to correct:"`
 
 *Tip:* Experiment with prompts to match your specific needs!
-
----
-
-## Running the Script
-
-### Option 1: With Batch File (Windows)
-1. Edit `run_hotkey.bat` with your settings or skip this step if you’ve set environment variable.
-2. Double-click `run_hotkey.bat` or run it from Command Prompt.
-
-### Option 2: Without Batch File
-1. Open Command Prompt.
-2. Navigate to the script folder: `cd path\to\text-improver`.
-3. Run for default settings:
-   ```bash
-   python hotkey.py
-   ```
-4. Or run with custom settings:
-   ```bash
-   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-4o-mini --prompt "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
-   ```
-   *Note:* Skip `--api_key` if it’s in environment variables.
 
 ---
 

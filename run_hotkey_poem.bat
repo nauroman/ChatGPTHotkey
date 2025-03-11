@@ -1,4 +1,16 @@
 @echo off
+REM Check if Python is installed
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python is not installed. Installing Python...
+    REM Download Python installer
+    curl -o python-installer.exe https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe
+    REM Install Python silently
+    start /wait python-installer.exe /quiet InstallAllUsers=1 PrependPath=1
+    REM Clean up installer
+    del python-installer.exe
+)
+
 REM Set the OpenAI API key. If not provided, the environment variable OPENAI_API_KEY will be used.
 set "API_KEY="
 
