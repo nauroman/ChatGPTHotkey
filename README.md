@@ -1,8 +1,4 @@
-﻿Below is an improved version of your document with detailed, newbie-friendly instructions added as requested. I've enhanced clarity, added step-by-step guidance, and included all the additional sections you asked for while maintaining the original structure.
-
----
-
-# Text Improver Hotkey Script
+﻿# Text Improver ChatGPT Hotkey Script
 
 A simple yet powerful Python script to automatically translate and/or improve your text using OpenAI's GPT models. Perfect for quickly fixing grammar, syntax, idioms, and polishing your writing into clear, polite, educated American English—all with a single hotkey press.
 
