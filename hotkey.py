@@ -1,12 +1,22 @@
 ﻿#!/usr/bin/env python3
-
-import os
+import subprocess
 import sys
+import importlib.util
+
+dependencies = ["pyautogui", "pyperclip", "pynput", "openai", "psutil"]
+
+for dep in dependencies:
+    if importlib.util.find_spec(dep) is None:
+        print(f"Installing {dep}...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
+        print(f"{dep} installed successfully")
+
+# Now import the required modules
+import os
 import time
 import threading
 import logging
 from typing import Optional
-import subprocess
 import argparse
 
 import pyautogui
@@ -70,23 +80,8 @@ class TextImprover(metaclass=SingletonMeta):
         self.running = True
         self.hotkey_listener = None
 
-        # Install dependencies if needed
-        self._install_dependencies()
-
         # Start the hotkey listener
         self._start_listener()
-
-    def _install_dependencies(self) -> None:
-        """Install required Python packages if not already installed."""
-        dependencies = ["pyautogui", "pyperclip", "pynput", "openai"]
-
-        for package in dependencies:
-            try:
-                __import__(package)
-            except ImportError:
-                logger.info(f"Installing {package}...")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-                logger.info(f"{package} installed successfully")
 
     def improve_text(self, text: str) -> str:
         """Call OpenAI API to improve the selected text."""
