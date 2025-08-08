@@ -50,7 +50,7 @@ class TextImprover(metaclass=SingletonMeta):
         # Default settings
         self.settings = {
             "api_key": os.environ.get("OPENAI_API_KEY"),
-            "model": "gpt-4o-mini",
+            "model": "gpt-5-mini",
             "hotkey": "<ctrl>+<f13>",
             "prompt": """The GPT's role is to correct texts to reflect educated polite American English, 
                         adjusting grammar, syntax, and idioms while preserving meaning. 
@@ -190,7 +190,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Text Improver Hotkey Script")
     parser.add_argument("--api_key", help="OpenAI API key")
     parser.add_argument("--hotkey", help="Hotkey to trigger the script (e.g., '<ctrl>+<f13>')")
-    parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-4o-mini')")
+    parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-5-mini')")
     parser.add_argument("--prompt", help="Prompt for the OpenAI model")
     return parser.parse_args()
 
