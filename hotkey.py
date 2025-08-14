@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 import subprocess
 import sys
 import importlib.util
@@ -91,7 +91,8 @@ class TextImprover(metaclass=SingletonMeta):
             logger.info("Calling OpenAI API...")
             completion = self.client.chat.completions.create(
                 model=self.settings["model"],
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
+                tools=[]
             )
             improved_text = completion.choices[0].message.content.strip()
             logger.info("Text improved successfully")
