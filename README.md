@@ -81,7 +81,7 @@ Double-click `run_hotkey.bat` or run it from Command Prompt.
    ```
 4. Or run with custom settings:
    ```bash
-   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-5-mini --prompt "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
+   python hotkey.py --api_key YOUR_API_KEY --hotkey "<ctrl>+<f13>" --model gpt-5-nano --prompt "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
    ```
    *Note:* Skip `--api_key` if it’s in environment variables.
 
@@ -96,7 +96,7 @@ Open `hotkey.py` in a text editor (e.g., Notepad) and adjust these settings in t
 ```python
 self.settings = {
     "api_key": "YOUR_OPENAI_API_KEY",  # Replace with your key or leave blank if using environment variables
-    "model": "gpt-5-mini",           # See "Choosing a Model" below
+    "model": "gpt-5-nano",           # See "Choosing a Model" below
     "hotkey": "<ctrl>+<f13>",         # See "Changing the Hotkey" below
     "prompt": "Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"  # See "Customizing the Prompt" below
 }
@@ -108,7 +108,7 @@ Edit `run_hotkey.bat` with Notepad and set these variables:
 ```batch
 set "API_KEY=YOUR_OPENAI_API_KEY"
 set "HOTKEY=<ctrl>+<f13>"
-set "MODEL=gpt-5-mini"
+set "MODEL=gpt-5-nano"
 set "PROMPT=Improve this text to sound clear, polite, and professional in American English. Translate into English if necessary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
 ```
 
@@ -132,7 +132,7 @@ The default hotkey is `Ctrl+F13`, but you can change it to something more conven
 ## Choosing a Model
 The script uses OpenAI’s GPT models. Here’s a breakdown to help you pick:
 
-- **`gpt-5-mini` (Default):**
+- **`gpt-5-nano` (Default):**
   - **Performance:** Fast and good for most tasks (grammar, clarity, tone).
   - **Pricing:** Cheaper (~$0.15 per 1M input tokens, $0.60 per 1M output tokens as of March 2025).
   - **Best For:** Everyday use, quick edits.
