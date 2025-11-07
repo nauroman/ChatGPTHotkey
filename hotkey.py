@@ -79,9 +79,54 @@ class TextImprover(metaclass=SingletonMeta):
         self.client = OpenAI(api_key=self.settings["api_key"])
         self.running = True
         self.hotkey_listener = None
+        self.processing_lock = threading.Lock()
 
         # Start the hotkey listener
         self._start_listener()
+
+    def _capture_selected_text(self) -> Optional[str]:
+        """Attempt to copy currently selected text, restoring the clipboard on failure."""
+        original_clipboard = pyperclip.paste()
+        sentinel = f"__TEXT_IMPROVER_SENTINEL__{time.time()}__"
+
+        try:
+            pyperclip.copy(sentinel)
+        except Exception as exc:
+            logger.error(f"Failed to write sentinel to clipboard: {exc}")
+            return None
+
+        try:
+            pyautogui.hotkey('ctrl', 'a', interval=0.1)
+            time.sleep(0.15)
+            pyautogui.hotkey('ctrl', 'c', interval=0.1)
+
+            selected_text: Optional[str] = None
+            for attempt in range(10):
+                time.sleep(0.05)
+                try:
+                    selected_text = pyperclip.paste()
+                except Exception as exc:
+                    logger.error(f"Failed to read clipboard: {exc}")
+                    selected_text = None
+
+                if selected_text and selected_text != sentinel:
+                    break
+
+                if attempt < 9:
+                    pyautogui.hotkey('ctrl', 'c', interval=0.1)
+
+            if not selected_text or selected_text == sentinel:
+                logger.warning("No text selected")
+                pyperclip.copy(original_clipboard)
+                return None
+
+            pyperclip.copy(selected_text)
+            return selected_text
+
+        except Exception as exc:
+            logger.error(f"Failed during selection capture: {exc}")
+            pyperclip.copy(original_clipboard)
+            return None
 
     def improve_text(self, text: str) -> str:
         """Call OpenAI API to improve the selected text."""
@@ -103,19 +148,15 @@ class TextImprover(metaclass=SingletonMeta):
 
     def _process_hotkey(self) -> None:
         """Handle the hotkey press event."""
+        if not self.processing_lock.acquire(blocking=False):
+            logger.warning("Processing already in progress; ignoring hotkey trigger")
+            return
+
         try:
             logger.info("Hotkey triggered")
 
-            # Simulate Ctrl+A and Ctrl+C
-            pyautogui.hotkey('ctrl', 'a')
-            time.sleep(0.1)  # Small delay to ensure selection
-            pyautogui.hotkey('ctrl', 'c')
-            time.sleep(0.1)  # Small delay to ensure copy
-
-            # Get text from clipboard
-            selected_text = pyperclip.paste()
+            selected_text = self._capture_selected_text()
             if not selected_text:
-                logger.warning("No text selected")
                 return
 
             logger.info(f"Selected text: {selected_text[:50]}...")
@@ -130,6 +171,8 @@ class TextImprover(metaclass=SingletonMeta):
 
         except Exception as e:
             logger.error(f"Error processing hotkey: {e}")
+        finally:
+            self.processing_lock.release()
 
     def _on_hotkey(self) -> None:
         """Callback for hotkey press."""
