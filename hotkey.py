@@ -3,7 +3,7 @@ import subprocess
 import sys
 import importlib.util
 
-dependencies = ["pyautogui", "pyperclip", "pynput", "openai", "psutil"]
+dependencies = ["pyperclip", "pynput", "openai", "psutil"]
 
 for dep in dependencies:
     if importlib.util.find_spec(dep) is None:
@@ -19,10 +19,8 @@ import logging
 from typing import Optional
 import argparse
 
-import pyautogui
 import pyperclip
 from pynput import keyboard
-from pynput.keyboard import Key, Controller
 from openai import OpenAI
 import ctypes
 
@@ -80,45 +78,36 @@ class TextImprover(metaclass=SingletonMeta):
 
         self.client = OpenAI(api_key=self.settings["api_key"])
         self.running = True
-        self.hotkey_listener = None
         self.processing_lock = threading.Lock()
-        self.kb_controller = Controller()
 
         # Start the hotkey listener
         self._start_listener()
 
+    # Windows virtual key codes
+    VK_CONTROL = 0x11
+    VK_A = 0x41
+    VK_C = 0x43
+    VK_V = 0x56
+    KEYEVENTF_KEYUP = 0x0002
+
+    def _send_key_combo(self, vk_key: int):
+        """Send Ctrl+Key combination using ctypes and Win32 API."""
+        ctypes.windll.user32.keybd_event(self.VK_CONTROL, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(vk_key, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(vk_key, 0, self.KEYEVENTF_KEYUP, 0)
+        ctypes.windll.user32.keybd_event(self.VK_CONTROL, 0, self.KEYEVENTF_KEYUP, 0)
+
     def _send_ctrl_a(self):
         """Send Ctrl+A using ctypes and Win32 API."""
-        VK_CONTROL = 0x11
-        VK_A = 0x41
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_A, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_A, 0, KEYEVENTF_KEYUP, 0)
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+        self._send_key_combo(self.VK_A)
 
     def _send_ctrl_c(self):
         """Send Ctrl+C using ctypes and Win32 API."""
-        VK_CONTROL = 0x11
-        VK_C = 0x43
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_C, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_C, 0, KEYEVENTF_KEYUP, 0)
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+        self._send_key_combo(self.VK_C)
 
     def _send_ctrl_v(self):
         """Send Ctrl+V using ctypes and Win32 API."""
-        VK_CONTROL = 0x11
-        VK_V = 0x56
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_V, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(VK_V, 0, KEYEVENTF_KEYUP, 0)
-        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+        self._send_key_combo(self.VK_V)
 
     def _capture_selected_text(self) -> Optional[str]:
         """Attempt to copy currently selected text, restoring the clipboard on failure."""
@@ -131,20 +120,14 @@ class TextImprover(metaclass=SingletonMeta):
 
             self._send_ctrl_a()
             time.sleep(0.05)
-
             self._send_ctrl_c()
-
-            # Wait for clipboard to update
             time.sleep(0.15)
 
-            selected_text: Optional[str] = None
             for attempt in range(3):
                 try:
                     selected_text = pyperclip.paste()
-
                     if selected_text and selected_text.strip():
                         return selected_text
-
                 except Exception as exc:
                     logger.error(f"Failed to read clipboard: {exc}")
 
@@ -171,8 +154,7 @@ class TextImprover(metaclass=SingletonMeta):
             logger.info(f"Calling OpenAI API (model: {self.settings['model']})...")
             completion = self.client.chat.completions.create(
                 model=self.settings["model"],
-                messages=[{"role": "user", "content": prompt}],
-                tools=[]
+                messages=[{"role": "user", "content": prompt}]
             )
             improved_text = completion.choices[0].message.content.strip()
             logger.info("Text improved successfully")
@@ -218,20 +200,15 @@ class TextImprover(metaclass=SingletonMeta):
     def _start_listener(self) -> None:
         """Start the keyboard listener."""
         try:
-            # Convert hotkey string to pynput format
             hotkey_combo = keyboard.HotKey(
                 keyboard.HotKey.parse(self.settings["hotkey"]),
                 self._on_hotkey
             )
 
-            def for_canonical(f):
-                return lambda k: f(listener.canonical(k))
-
             listener = keyboard.Listener(
-                on_press=for_canonical(hotkey_combo.press),
-                on_release=for_canonical(hotkey_combo.release)
+                on_press=lambda k: hotkey_combo.press(listener.canonical(k)),
+                on_release=lambda k: hotkey_combo.release(listener.canonical(k))
             )
-            self.hotkey_listener = listener
             listener.start()
             logger.info(f"Listening for hotkey: {self.settings['hotkey']}")
 
@@ -254,16 +231,15 @@ def check_single_instance() -> bool:
 
     current_pid = os.getpid()
     script_name = os.path.basename(__file__)
-    instances = 0
 
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+    for proc in psutil.process_iter(['pid', 'cmdline']):
         try:
             if proc.pid != current_pid and script_name in ' '.join(proc.info['cmdline'] or []):
-                instances += 1
+                return False
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
-    return instances == 0
+    return True
 
 def parse_args():
     """Parse command-line arguments."""
