@@ -3,7 +3,7 @@ import subprocess
 import sys
 import importlib.util
 
-dependencies = ["pyperclip", "pynput", "openai", "psutil"]
+dependencies = ["pyperclip", "pynput", "openai"]
 
 for dep in dependencies:
     if importlib.util.find_spec(dep) is None:
@@ -43,12 +43,13 @@ The GPT should not ask for clarification; it should simply provide the
 corrected text without any introductions or additions such as
 'here is the improved version.' Text to correct:"""
 
-    def __init__(self, api_key: str = None, hotkey: str = None, model: str = None, prompt: str = None):
+    def __init__(self, api_key: str = None, hotkey: str = None, model: str = None, prompt: str = None, reasoning_effort: str = None):
         # Initialize settings with defaults and overrides
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.model = model or "gpt-4.1-nano"
         self.hotkey = hotkey or "<ctrl>+<f13>"
         self.prompt = prompt or self.DEFAULT_PROMPT
+        self.reasoning_effort = reasoning_effort
 
         # Validate API key
         if not self.api_key:
@@ -108,11 +109,24 @@ corrected text without any introductions or additions such as
         """Call OpenAI API to improve the selected text."""
         try:
             logger.info(f"Calling OpenAI API (model: {self.model})...")
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": f"{self.prompt.strip()}\n\n{text}"}]
-            )
-            improved_text = completion.choices[0].message.content.strip()
+
+            # Use responses API if reasoning effort is specified, otherwise use chat completions
+            if self.reasoning_effort:
+                api_params = {
+                    "model": self.model,
+                    "input": f"{self.prompt.strip()}\n\n{text}",
+                    "reasoning": {"effort": self.reasoning_effort}
+                }
+                result = self.client.responses.create(**api_params)
+                improved_text = result.output_text.strip()
+            else:
+                api_params = {
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": f"{self.prompt.strip()}\n\n{text}"}]
+                }
+                completion = self.client.chat.completions.create(**api_params)
+                improved_text = completion.choices[0].message.content.strip()
+
             logger.info("Text improved successfully")
             return improved_text
         except Exception as e:
@@ -178,23 +192,6 @@ corrected text without any introductions or additions such as
             logger.info("Shutting down...")
             self.running = False
 
-def check_single_instance() -> bool:
-    """Check if another instance is already running."""
-    import psutil
-
-    current_pid = os.getpid()
-    script_name = os.path.basename(__file__)
-
-    for proc in psutil.process_iter(['cmdline']):
-        try:
-            cmdline = proc.info.get('cmdline')
-            if cmdline and proc.pid != current_pid and script_name in ' '.join(cmdline):
-                return False
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-
-    return True
-
 def parse_args():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Text Improver Hotkey Script")
@@ -202,17 +199,14 @@ def parse_args():
     parser.add_argument("--hotkey", help="Hotkey to trigger the script (e.g., '<ctrl>+<f13>')")
     parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-4.1-nano')")
     parser.add_argument("--prompt", help="Prompt for the OpenAI model")
+    parser.add_argument("--reasoning_effort", help="Reasoning effort level: 'low', 'medium', or 'high'")
     return parser.parse_args()
 
 def main():
     """Main entry point."""
-    if not check_single_instance():
-        logger.error("Another instance is already running")
-        sys.exit(1)
-
     args = parse_args()
     logger.info("Starting Text Improver...")
-    TextImprover(args.api_key, args.hotkey, args.model, args.prompt).run()
+    TextImprover(args.api_key, args.hotkey, args.model, args.prompt, args.reasoning_effort).run()
 
 if __name__ == "__main__":
     main()
