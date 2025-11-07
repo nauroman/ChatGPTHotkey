@@ -22,7 +22,9 @@ import argparse
 import pyautogui
 import pyperclip
 from pynput import keyboard
+from pynput.keyboard import Key, Controller
 from openai import OpenAI
+import ctypes
 
 # Configure logging
 logging.basicConfig(
@@ -50,7 +52,7 @@ class TextImprover(metaclass=SingletonMeta):
         # Default settings
         self.settings = {
             "api_key": os.environ.get("OPENAI_API_KEY"),
-            "model": "gpt-5-nano",
+            "model": "gpt-4.1-nano",
             "hotkey": "<ctrl>+<f13>",
             "prompt": """The GPT's role is to correct texts to reflect educated polite American English, 
                         adjusting grammar, syntax, and idioms while preserving meaning. 
@@ -80,48 +82,81 @@ class TextImprover(metaclass=SingletonMeta):
         self.running = True
         self.hotkey_listener = None
         self.processing_lock = threading.Lock()
+        self.kb_controller = Controller()
 
         # Start the hotkey listener
         self._start_listener()
 
+    def _send_ctrl_a(self):
+        """Send Ctrl+A using ctypes and Win32 API."""
+        VK_CONTROL = 0x11
+        VK_A = 0x41
+        KEYEVENTF_KEYUP = 0x0002
+
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_A, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_A, 0, KEYEVENTF_KEYUP, 0)
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+
+    def _send_ctrl_c(self):
+        """Send Ctrl+C using ctypes and Win32 API."""
+        VK_CONTROL = 0x11
+        VK_C = 0x43
+        KEYEVENTF_KEYUP = 0x0002
+
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_C, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_C, 0, KEYEVENTF_KEYUP, 0)
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+
+    def _send_ctrl_v(self):
+        """Send Ctrl+V using ctypes and Win32 API."""
+        VK_CONTROL = 0x11
+        VK_V = 0x56
+        KEYEVENTF_KEYUP = 0x0002
+
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_V, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(VK_V, 0, KEYEVENTF_KEYUP, 0)
+        ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+
     def _capture_selected_text(self) -> Optional[str]:
         """Attempt to copy currently selected text, restoring the clipboard on failure."""
         original_clipboard = pyperclip.paste()
-        sentinel = f"__TEXT_IMPROVER_SENTINEL__{time.time()}__"
 
         try:
-            pyperclip.copy(sentinel)
-        except Exception as exc:
-            logger.error(f"Failed to write sentinel to clipboard: {exc}")
-            return None
+            # Clear clipboard first
+            pyperclip.copy("")
+            time.sleep(0.05)
 
-        try:
-            pyautogui.hotkey('ctrl', 'a', interval=0.1)
+            self._send_ctrl_a()
+            time.sleep(0.05)
+
+            self._send_ctrl_c()
+
+            # Wait for clipboard to update
             time.sleep(0.15)
-            pyautogui.hotkey('ctrl', 'c', interval=0.1)
 
             selected_text: Optional[str] = None
-            for attempt in range(10):
-                time.sleep(0.05)
+            for attempt in range(3):
                 try:
                     selected_text = pyperclip.paste()
+
+                    if selected_text and selected_text.strip():
+                        return selected_text
+
                 except Exception as exc:
                     logger.error(f"Failed to read clipboard: {exc}")
-                    selected_text = None
 
-                if selected_text and selected_text != sentinel:
-                    break
+                if attempt < 2:
+                    self._send_ctrl_a()
+                    time.sleep(0.05)
+                    self._send_ctrl_c()
+                    time.sleep(0.15)
 
-                if attempt < 9:
-                    pyautogui.hotkey('ctrl', 'c', interval=0.1)
-
-            if not selected_text or selected_text == sentinel:
-                logger.warning("No text selected")
-                pyperclip.copy(original_clipboard)
-                return None
-
-            pyperclip.copy(selected_text)
-            return selected_text
+            logger.warning("No text selected")
+            pyperclip.copy(original_clipboard)
+            return None
 
         except Exception as exc:
             logger.error(f"Failed during selection capture: {exc}")
@@ -133,7 +168,7 @@ class TextImprover(metaclass=SingletonMeta):
         prompt = f"{self.settings['prompt'].strip()}\n\n{text}"
 
         try:
-            logger.info("Calling OpenAI API...")
+            logger.info(f"Calling OpenAI API (model: {self.settings['model']})...")
             completion = self.client.chat.completions.create(
                 model=self.settings["model"],
                 messages=[{"role": "user", "content": prompt}],
@@ -166,7 +201,8 @@ class TextImprover(metaclass=SingletonMeta):
 
             # Update clipboard and paste
             pyperclip.copy(improved_text)
-            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(0.05)
+            self._send_ctrl_v()
             logger.info("Improved text pasted successfully")
 
         except Exception as e:
@@ -234,7 +270,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Text Improver Hotkey Script")
     parser.add_argument("--api_key", help="OpenAI API key")
     parser.add_argument("--hotkey", help="Hotkey to trigger the script (e.g., '<ctrl>+<f13>')")
-    parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-5-nano')")
+    parser.add_argument("--model", help="OpenAI model to use (e.g., 'gpt-4.1-nano')")
     parser.add_argument("--prompt", help="Prompt for the OpenAI model")
     return parser.parse_args()
 
