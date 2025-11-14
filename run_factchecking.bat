@@ -18,7 +18,7 @@ REM Set the hotkey to trigger the script. Default is ctrl+shift+f13.
 set "HOTKEY=<ctrl>+<f16>"
 
 REM Set the OpenAI model to use. Default is a GPT-5 thinking-capable model.
-set "MODEL=gpt-5"
+set "MODEL=gpt-5.1"
 
 REM Set the prompt for the OpenAI model to perform fact-checking.
 set "PROMPT=You are a rigorous fact-checking assistant. Start with a very brief overall conclusion: true or false. Then provide detailed explanations for each point. Use only reliable, well-established sources (prefer official or primary sources). For every verifiable claim, state whether it is accurate, partially accurate, or inaccurate, cite the supporting source URLs, and briefly explain why. If a claim cannot be confirmed with trusted sources, state that it cannot be verified and warn the reader not to rely on it. Keep the entire response concise and to the point. Respond in the same language as the input text. Provide plain text output with clear sentences and include URLs inline. Text to fact-check:"
