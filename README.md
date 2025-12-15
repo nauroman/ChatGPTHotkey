@@ -1,6 +1,6 @@
 # Text Improver & Fact Checker Hotkey Script
 
-A versatile Python script that improves and corrects your text using OpenAI's GPT models with a single hotkey press. Now supports fact-checking with GPT-5.1 reasoning models.
+A versatile Python script that improves and corrects your text using OpenAI's GPT models with a single hotkey press. Now supports fact-checking with GPT-5.2 reasoning models.
 
 ## What It Does
 
@@ -95,13 +95,13 @@ Avoid common shortcuts like `Ctrl+C` to prevent conflicts.
 - **`gpt-4.1-nano` (default):** Fast, affordable, good for most text improvement tasks
 - **`gpt-4o-mini`:** Better quality, slightly more expensive
 - **`gpt-4o`:** High quality for complex improvements
-- **`gpt-5.1`:** Advanced reasoning capabilities for fact-checking and complex analysis
+- **`gpt-5.2`:** Advanced reasoning capabilities for fact-checking and complex analysis
 
 Check [OpenAI pricing](https://openai.com/pricing) for current rates.
 
 ## Fact Checking Mode
 
-The fact checking mode uses GPT-5.1 reasoning models to verify claims in your text:
+The fact checking mode uses GPT-5.2 reasoning models to verify claims in your text:
 
 **Features:**
 - Verifies each claim using reliable, well-established sources
@@ -119,7 +119,7 @@ The fact checking mode uses GPT-5.1 reasoning models to verify claims in your te
 **Customize fact checking:**
 Edit `run_factchecking.bat` to change:
 - `HOTKEY`: Change the hotkey (default: `<ctrl>+<f16>`)
-- `MODEL`: Change the model (default: `gpt-5.1`)
+- `MODEL`: Change the model (default: `gpt-5.2`)
 - `REASONING_EFFORT`: Adjust reasoning depth (`low`, `medium`, `high`)
 - `PROMPT`: Modify fact-checking instructions
 
@@ -154,7 +154,7 @@ Edit `run_factchecking.bat` to change:
 pip install pyperclip pynput openai
 ```
 
-**Fact checking gives errors**: Ensure you have access to GPT-5.1 models in your OpenAI account
+**Fact checking gives errors**: Ensure you have access to GPT-5.2 models in your OpenAI account
 
 ---
 
