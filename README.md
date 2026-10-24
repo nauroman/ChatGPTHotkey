@@ -1,173 +1,189 @@
-# Text Improver & Fact Checker Hotkey Script
+# ChatGPTHotkey
 
-A versatile Python script that improves and corrects your text using OpenAI's GPT models with a single hotkey press. Now supports fact-checking with GPT-5.2 reasoning models.
+**Turn a rough draft into clearer writing without moving it into a chat window.**
 
-## What It Does
+ChatGPTHotkey brings English translation and original-language editing to compatible Windows text fields. Stay in your editor, press a shortcut, and replace the draft with the result. Use it when you have something to say and want help saying it well.
 
-Press your hotkey and the script will:
-1. Select and copy all text in your active window
-2. Send it to OpenAI's GPT model for processing
-3. Automatically paste the result back
+**[Download the source ZIP](https://github.com/nauroman/ChatGPTHotkey/archive/refs/heads/master.zip)** · [Quick start](#quick-start-windows) · [Browse the code](https://github.com/nauroman/ChatGPTHotkey)
 
-**Two modes available:**
-- **Text Improvement** (default): Fix grammar, improve clarity, translate to polished American English
-- **Fact Checking**: Verify claims with reliable sources, cite URLs, and provide accuracy assessments
+This is a Python source project, not a packaged installer. It uses the OpenAI API, with separate API billing; a ChatGPT subscription does not cover these requests.
 
----
+## Two writing modes
 
-## Quick Start
+| Shortcut | Result |
+| --- | --- |
+| **Ctrl+F13** | Translate into natural, polished American English. If the input is already English, correct and refine it. |
+| **Ctrl+Shift+F13** | Edit in the original language: correct errors and improve clarity, vocabulary, expression and sentence flow. Russian stays Russian; English stays English. |
 
-### 1. Get an OpenAI API Key
+The goal is writing that sounds thoughtful, articulate and natural, without unnecessary formality or inflated wording. Both prompts ask the model to preserve your meaning, facts, tone and formatting, and not invent details or commitments. The result is ready-to-use text, without a preamble.
 
-1. Go to [platform.openai.com](https://platform.openai.com/) and sign up/login
-2. Click your profile → "View API Keys"
-3. Click "Create New Secret Key" and copy it (starts with `sk-`)
+### What that looks like
 
-### 2. Set Your API Key
+These are short excerpts from manual checks in a disposable text field, not guarantees of identical output on every request.
 
-**Windows:** Add it as an environment variable (recommended):
-- Right-click Start → System → Advanced system settings → Environment Variables
-- Click "New" under System variables
-- Variable name: `OPENAI_API_KEY`
-- Variable value: Your API key
-- Click OK
+| Mode | Before | After |
+| --- | --- | --- |
+| English translation | Я не обещал закончить работу к пятнице. | I did not promise to finish the work by Friday. |
+| Russian editing | мне кажеться, идея хорошая но детали надо абсудить заранее. | Мне кажется, идея хорошая, но детали нужно обсудить заранее. |
+| English editing | we has two ideas and i think they is worth discussing. | We have two ideas, and I think they are worth discussing. |
 
-**Verify:** Open Command Prompt and type `echo %OPENAI_API_KEY%`
+**Start with a disposable field.** The shortcut captures everything selected by Ctrl+A in that field or editor, sends it to OpenAI, and replaces it with plain text. It does not process only a passage you previously highlighted.
 
-### 3. Run the Script
+## Quick start: Windows
 
-**Text Improvement Mode (default):**
-- Double-click `run_hotkey.bat` (installs dependencies automatically)
-- Press `Ctrl+F13` to improve text in any application
+1. **Get the source.** [Download the ZIP](https://github.com/nauroman/ChatGPTHotkey/archive/refs/heads/master.zip) and extract it. If you prefer Git, use `git clone https://github.com/nauroman/ChatGPTHotkey.git`.
+2. **Prepare Python and API access.** Install [Python for Windows](https://www.python.org/downloads/windows/) with `python` on `PATH`. For a fresh setup, use Python 3.10+ to meet the current SDK requirements. Privately set `OPENAI_API_KEY` in your Windows user environment variables. [API setup details](#configure-api-access) are below.
+3. **Open a new Command Prompt in the extracted project folder** so it inherits the key, then run:
 
-**Fact Checking Mode:**
-- Double-click `run_factchecking.bat`
-- Press `Ctrl+F16` to fact-check text in any application
-
-**Or run manually:**
-```bash
-python hotkey.py
+```bat
+python -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
+run_hotkey.bat
 ```
 
-The script will run in the background.
+Leave that console running. Put a harmless sentence in a compatible text field, focus it, and try Ctrl+F13 or Ctrl+Shift+F13. No API key needs to be written into the repository.
 
----
+If your keyboard has no F13, use the [custom-shortcut example](#configuration). For later sessions, reactivate the environment and start the launcher again:
 
-## Configuration
-
-### Command Line Options
-
-```bash
-python hotkey.py --api_key YOUR_KEY --hotkey "<ctrl>+<f13>" --model gpt-4.1-nano --prompt "Your custom prompt" --reasoning_effort medium
+```bat
+call .venv\Scripts\activate.bat
+run_hotkey.bat
 ```
 
-- `--api_key`: Your OpenAI API key (optional if set in environment)
-- `--hotkey`: Hotkey combination (default: `<ctrl>+<f13>`)
-- `--model`: OpenAI model (default: `gpt-4.1-nano`)
-- `--prompt`: Custom improvement instructions
-- `--reasoning_effort`: Reasoning level (`low`, `medium`, `high`) - enables GPT reasoning models for complex tasks
+## How the shortcuts work
 
-### Edit Defaults in Code
+The shortcuts are mutually exclusive. Processing starts when **F13 is released**; release the modifiers promptly too. Holding Shift selects editing rather than also triggering translation. Repeated presses during a request are ignored, and both modes share one processing lock.
 
-Open `hotkey.py` in a text editor and find these lines:
+The current default model is **`gpt-5-nano`**, with **`minimal`** reasoning effort. Both modes use the same model.
 
-```python
-self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
-self.model = model or "gpt-4.1-nano"
-self.hotkey = hotkey or "<ctrl>+<f13>"
-self.prompt = prompt or self.DEFAULT_PROMPT
-```
+1. Focus the editable field you want to process.
+2. Press and release the shortcut.
+3. The script sends **Ctrl+A, then Ctrl+C** to capture all text in that field or editor.
+4. It sends the captured text to the OpenAI API.
+5. On a successful, non-empty, complete response, it sends **Ctrl+V** to replace the selection.
 
-Change the values after `or` to set new defaults.
+In a document editor, Ctrl+A may select the whole document.
 
-### Hotkey Examples
-
-- `<ctrl>+<f13>` (default)
-- `<ctrl>+<shift>+h`
-- `<alt>+<f2>`
-
-Avoid common shortcuts like `Ctrl+C` to prevent conflicts.
-
----
-
-## Model Selection
-
-- **`gpt-4.1-nano` (default):** Fast, affordable, good for most text improvement tasks
-- **`gpt-4o-mini`:** Better quality, slightly more expensive
-- **`gpt-4o`:** High quality for complex improvements
-- **`gpt-5.2`:** Advanced reasoning capabilities for fact-checking and complex analysis
-
-Check [OpenAI pricing](https://openai.com/pricing) for current rates.
-
-## Fact Checking Mode
-
-The fact checking mode uses GPT-5.2 reasoning models to verify claims in your text:
-
-**Features:**
-- Verifies each claim using reliable, well-established sources
-- Cites source URLs for transparency
-- States accuracy level: accurate, partially accurate, or inaccurate
-- Warns when claims cannot be verified
-- Responds in the same language as input
-
-**How to use:**
-1. Run `run_factchecking.bat`
-2. Select text containing claims you want to verify
-3. Press `Ctrl+F16` (default hotkey)
-4. The text will be replaced with a fact-checked version including sources
-
-**Customize fact checking:**
-Edit `run_factchecking.bat` to change:
-- `HOTKEY`: Change the hotkey (default: `<ctrl>+<f16>`)
-- `MODEL`: Change the model (default: `gpt-5.2`)
-- `REASONING_EFFORT`: Adjust reasoning depth (`low`, `medium`, `high`)
-- `PROMPT`: Modify fact-checking instructions
-
----
-
-## Auto-Start on Windows
-
-### Method 1: Startup Folder (Simple)
-1. Press `Win+R`, type `shell:startup`, press Enter
-2. Create shortcuts for the modes you want:
-   - Drag `run_hotkey.bat` (text improvement) while holding Alt
-   - Drag `run_factchecking.bat` (fact checking) while holding Alt
-
-### Method 2: Task Scheduler (Advanced)
-1. Press `Win+R`, type `taskschd.msc`, press Enter
-2. Click "Create Task"
-3. Set trigger to "At log on"
-4. Set action to run your preferred `.bat` file
-
----
-
-## Troubleshooting
-
-**"API key not provided"**: Set the `OPENAI_API_KEY` environment variable or pass `--api_key`
-
-**Hotkey doesn't work**: Try a different key combination, avoid conflicts with other programs
-
-**Running both modes simultaneously**: You can run both `run_hotkey.bat` and `run_factchecking.bat` at the same time with different hotkeys
-
-**Dependencies fail to install**: Manually install with:
-```bash
-pip install pyperclip pynput openai
-```
-
-**Fact checking gives errors**: Ensure you have access to GPT-5.2 models in your OpenAI account
-
----
+Compatibility depends on the application's handling of these keyboard and clipboard shortcuts; custom editors may behave differently. Replacement is plain text, so rich formatting is not guaranteed. Keep the field and its contents unchanged while waiting. The script cancels insertion if the foreground window changes, but it does not track every focus change or edit within the same window.
 
 ## Requirements
 
-- Python 3.7+
-- Windows OS (uses Windows keyboard API)
-- OpenAI API key
+- **Windows**: the script uses the Win32 keyboard API through `ctypes`.
+- **Python and pip**, with `python` available on `PATH`. For a fresh installation, use **Python 3.10+**, as required by the [current OpenAI Python SDK](https://github.com/openai/openai-python#requirements). The repository itself does not pin a Python version or dependency versions; support also depends on the packages you install.
+- An OpenAI API key with access to the configured model, network connectivity and available API quota.
+- Git if you use the clone command below; downloading the repository as a ZIP is also possible.
 
-Dependencies are auto-installed on first run.
+The main script imports `pyperclip` for text clipboard access, `pynput` for hotkeys, and `openai` for API requests. [requirements.txt](requirements.txt) also lists `pyautogui` and `psutil`; these two packages are not currently imported by `hotkey.py`.
 
----
+API use is billed separately from a ChatGPT subscription. See [OpenAI's billing explanation](https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform) and [current API pricing](https://developers.openai.com/api/docs/pricing).
 
-## License
+`run_hotkey.bat` checks for Python and exits with a message if it is unavailable; it does not install Python. `hotkey.py` still tries to install missing `pyperclip`, `pynput` or `openai` packages automatically with pip. Installing the requirements explicitly first avoids that bootstrap step.
 
-MIT License - See LICENSE file for details
+## Configure API access
+
+Use the **`OPENAI_API_KEY` environment variable**:
+
+1. Open the Windows environment-variable settings for your user account.
+2. Add `OPENAI_API_KEY` and enter your API key privately as its value.
+3. Open a new Command Prompt so it inherits the variable, return to the project folder, and reactivate `.venv`.
+
+Check only whether the variable is present, without displaying its value:
+
+```bat
+python -c "import os; print('Configured' if os.environ.get('OPENAI_API_KEY') else 'Missing')"
+```
+
+Manage API keys in your [OpenAI API account](https://platform.openai.com/api-keys). Do not put keys in Git, screenshots or issue reports. The script does **not** load `.env` files automatically.
+
+The CLI also accepts `--api_key`, and the batch launcher has a legacy `API_KEY` setting. Prefer the environment variable: command-line keys may be visible in process arguments, and a key saved in the tracked batch file could be committed accidentally. Leave the launcher's `API_KEY` empty when using `OPENAI_API_KEY`.
+
+## Start, stop and restart
+
+From the project folder in the activated Command Prompt:
+
+```bat
+run_hotkey.bat
+```
+
+Or use the Python defaults directly:
+
+```bat
+python hotkey.py
+```
+
+Both provide the two default writing shortcuts. Leave the process running while you use them. Start only one writing instance: the processing lock belongs to each process and does not prevent duplicate copies of the program.
+
+Press **Ctrl+C in that process's console**, or close that console, to stop its hotkey listener. The batch launcher may wait at its final `pause` after Python exits. Restart the process after changing configuration or code; there is no automatic reload.
+
+The batch launcher uses whichever `python` is on `PATH`; it does not activate `.venv` itself. For the virtual-environment installation above, launch it from the activated terminal. A double-click or desktop shortcut may use a different Python environment. Any `.lnk` files in the repository are machine-specific; create your own shortcut for your installation rather than relying on their stored targets.
+
+## Configuration
+
+Edit these settings in [run_hotkey.bat](run_hotkey.bat), then restart:
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `HOTKEY` | `<ctrl>+<f13>` | Primary English translation/correction shortcut. |
+| `EDIT_HOTKEY` | `<ctrl>+<shift>+<f13>` | Original-language editing shortcut. |
+| `MODEL` | `gpt-5-nano` | OpenAI model used by both modes. |
+| `REASONING_EFFORT` | `minimal` | Reasoning effort for the selected model. |
+| `PROMPT` | Empty | Use the built-in translation prompt; a non-empty value overrides it. |
+| `EDIT_PROMPT` | Empty | Use the built-in editing prompt; a non-empty value overrides it. |
+
+The corresponding CLI options are `--hotkey`, `--edit_hotkey`, `--model`, `--reasoning_effort`, `--prompt` and `--edit_prompt`. View the parser's help with:
+
+```bat
+python hotkey.py --help
+```
+
+For a keyboard without F13, configure two distinct shortcuts. For example:
+
+```bat
+python hotkey.py --hotkey "<ctrl>+<alt>+<f11>" --edit_hotkey "<ctrl>+<alt>+<f12>" --model gpt-5-nano --reasoning_effort minimal
+```
+
+Each shortcut needs exactly one non-modifier key. Extra modifiers do not match. When setting a custom primary shortcut through the CLI, also supply `--edit_hotkey` if you want both modes: the editing shortcut is added automatically only when the primary shortcut is the default `<ctrl>+<f13>`.
+
+For `gpt-5-nano`, an omitted or empty reasoning-effort value falls back to `minimal`. Other models receive reasoning effort only when it is supplied. Accepted effort values depend on the model; changing a model or effort setting requires compatible API access. The code uses Responses when the installed SDK provides it and an effort is set, otherwise Chat Completions with the legacy-SDK fallback.
+
+## Errors and diagnostics
+
+Diagnostics go to the console and **`hotkey.log` beside `hotkey.py`**. The log rotates at 256 KiB with one backup. It records modes, model names, error categories and HTTP status, rather than source text or raw exception messages.
+
+| Symptom | What to check |
+| --- | --- |
+| Missing API key at startup | Set `OPENAI_API_KEY`, then restart from a terminal that inherited it. |
+| Authentication failure / HTTP 401 | Check that the existing credential is valid and available to this process. |
+| Unavailable model / HTTP 404 | Check `MODEL` and account access to that model. |
+| Exhausted API quota | Review API billing and usage limits; this is different from a temporary rate limit. |
+| Rate limit | Wait before trying again. |
+| Connection failure or timeout | Check connectivity. API requests use a 30-second SDK timeout with automatic SDK retries disabled. |
+| Empty, refused or incomplete response | The result is rejected; retry if appropriate. |
+| No text captured | Confirm focus is in a compatible editable field and Ctrl+A / Ctrl+C work there. |
+| Active window changed | Insertion is cancelled; retry in the intended field. |
+| Processing already in progress | Wait for the current request; repeated triggers are ignored. |
+
+Request failures show a safe error message and do not intentionally replace the original text. If no text can be copied, the script returns without replacement. Diagnostics do not guarantee compatibility with every application, and ordinary model mistakes in meaning or style still need human review.
+
+## Privacy and clipboard behavior
+
+All captured text is sent to the OpenAI API; processing is not offline. Only invoke the shortcut on text you intend to send. Task instructions and source data are separated, and the prompts ask the model to transform embedded commands or questions as text rather than obey or answer them.
+
+Clipboard handling is text-only: the script saves and restores clipboard **text**, not a full snapshot of images, rich text or other formats. Avoid changing the clipboard during a request. Do not include keys, private clipboard contents or sensitive source text when sharing diagnostics.
+
+## Tests
+
+With dependencies installed, run from the project folder on Windows:
+
+```bat
+python -m unittest discover -s tests -v
+```
+
+The [16 tests](tests/test_hotkey.py) cover exact shortcut selection, press/release order, autorepeat, Unicode input, shared processing exclusion, prompt/source separation, errors, incomplete results, clipboard-text restoration and active-window cancellation. They use mocked API and desktop operations, do not require an API key, and do not make live API requests or append to the runtime log. Native application compatibility and translation quality need separate manual checks in a disposable field.
+
+## Optional legacy launchers
+
+[run_factchecking.bat](run_factchecking.bat) starts a separate **Ctrl+F16** configuration with `gpt-5.2`, medium reasoning effort and a fact-checking prompt. Run it from the project directory with the Python environment already prepared. The script does not enable web search or fetch sources; independently verify its claims and any generated URLs.
+
+[run_hotkey_poem.bat](run_hotkey_poem.bat) is a separate poem-writing configuration. It reuses **Ctrl+F13**, so it conflicts with the default writing instance. These legacy batch files retain their own bootstrap behavior and were not modernized with the main launcher.
