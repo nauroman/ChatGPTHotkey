@@ -3,3 +3,4 @@ pyperclip
 pynput
 openai
 psutil
+httpx

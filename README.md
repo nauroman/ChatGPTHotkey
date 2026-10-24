@@ -74,7 +74,7 @@ Compatibility depends on the application's handling of these keyboard and clipbo
 - An OpenAI API key with access to the configured model, network connectivity and available API quota.
 - Git if you use the clone command below; downloading the repository as a ZIP is also possible.
 
-The main script imports `pyperclip` for text clipboard access, `pynput` for hotkeys, and `openai` for API requests. [requirements.txt](requirements.txt) also lists `pyautogui` and `psutil`; these two packages are not currently imported by `hotkey.py`.
+The main script imports `pyperclip` for text clipboard access, `pynput` for hotkeys, and `openai` for API requests. Fact Checker also imports `httpx` for direct Responses API requests. [requirements.txt](requirements.txt) also lists `pyautogui` and `psutil`; these two packages are not currently imported by `hotkey.py`.
 
 API use is billed separately from a ChatGPT subscription. See [OpenAI's billing explanation](https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform) and [current API pricing](https://developers.openai.com/api/docs/pricing).
 
@@ -180,10 +180,18 @@ With dependencies installed, run from the project folder on Windows:
 python -m unittest discover -s tests -v
 ```
 
-The [16 tests](tests/test_hotkey.py) cover exact shortcut selection, press/release order, autorepeat, Unicode input, shared processing exclusion, prompt/source separation, errors, incomplete results, clipboard-text restoration and active-window cancellation. They use mocked API and desktop operations, do not require an API key, and do not make live API requests or append to the runtime log. Native application compatibility and translation quality need separate manual checks in a disposable field.
+The [writing-mode tests](tests/test_hotkey.py) cover exact shortcut selection, press/release order, autorepeat, Unicode input, shared processing exclusion, prompt/source separation, errors, incomplete results, clipboard-text restoration and active-window cancellation. They use mocked API and desktop operations, do not require an API key, and do not make live API requests or append to the runtime log. Native application compatibility and translation quality need separate manual checks in a disposable field. The [Fact Checker tests](tests/test_factchecking.py) also cover source provenance, factual versus subjective verdicts, incomplete reports and failures without automatic retries.
 
-## Optional legacy launchers
+## Additional launchers
 
-[run_factchecking.bat](run_factchecking.bat) starts a separate **Ctrl+F16** configuration with `gpt-5.2`, medium reasoning effort and a fact-checking prompt. Run it from the project directory with the Python environment already prepared. The script does not enable web search or fetch sources; independently verify its claims and any generated URLs.
+### Fact Checker: Ctrl+F16
 
-[run_hotkey_poem.bat](run_hotkey_poem.bat) is a separate poem-writing configuration. It reuses **Ctrl+F13**, so it conflicts with the default writing instance. These legacy batch files retain their own bootstrap behavior and were not modernized with the main launcher.
+[run_factchecking.bat](run_factchecking.bat) starts a separate fact checker through [factchecking.py](factchecking.py), using **`gpt-6-luna` with `medium` reasoning and live web search**. Run it with the same prepared Python environment, then focus a disposable text field and press **Ctrl+F16**. As with the writing modes, it captures everything selected by Ctrl+A in that field and replaces it with the completed report.
+
+The report distinguishes facts, opinions, predictions and uncertainty. Sourced factual verdicts require URLs returned by the current search response. This verifies URL provenance, not the truth of every interpretation; review important conclusions yourself. API failures, incomplete reports and unsupported evidence are rejected without replacing the original text.
+
+**Web search is billed separately from model tokens.** A lower model token price does not guarantee a lower total cost than a mode without search. Latency varies with the passage, evidence and network; there is no universal speed guarantee. See [current API pricing](https://developers.openai.com/api/docs/pricing) and [Fact Checker settings and limits](FACTCHECKING.md).
+
+The launcher uses the existing `OPENAI_API_KEY` and works from its own folder. The two writing modes keep their existing model and shortcuts.
+
+[run_hotkey_poem.bat](run_hotkey_poem.bat) is a separate poem-writing configuration. It reuses **Ctrl+F13**, so it conflicts with the default writing instance. The poem launcher retains its legacy bootstrap behavior.
