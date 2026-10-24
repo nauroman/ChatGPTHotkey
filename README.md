@@ -184,9 +184,9 @@ The [writing-mode tests](tests/test_hotkey.py) cover exact shortcut selection, p
 
 ## Additional launchers
 
-### Fact Checker: Ctrl+F16
+### Fact Checker: Ctrl+F14
 
-[run_factchecking.bat](run_factchecking.bat) starts a separate fact checker through [factchecking.py](factchecking.py), using **`gpt-6-luna` with `medium` reasoning and live web search**. Run it with the same prepared Python environment, then focus a disposable text field and press **Ctrl+F16**. As with the writing modes, it captures everything selected by Ctrl+A in that field and replaces it with the completed report.
+[run_factchecking.bat](run_factchecking.bat) starts a separate fact checker through [factchecking.py](factchecking.py), using **`gpt-6-luna` with `medium` reasoning and live web search**. Run it with the same prepared Python environment, then focus a disposable text field and press **Ctrl+F14**. As with the writing modes, it captures everything selected by Ctrl+A in that field and replaces it with the completed report.
 
 The report distinguishes facts, opinions, predictions and uncertainty. Sourced factual verdicts require URLs returned by the current search response. This verifies URL provenance, not the truth of every interpretation; review important conclusions yourself. API failures, incomplete reports and unsupported evidence are rejected without replacing the original text.
 

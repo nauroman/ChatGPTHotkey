@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 REM Uses the existing OPENAI_API_KEY environment variable.
-set "HOTKEY=<ctrl>+<f16>"
+set "HOTKEY=<ctrl>+<f14>"
 set "MODEL=gpt-6-luna"
 set "REASONING_EFFORT=medium"
 

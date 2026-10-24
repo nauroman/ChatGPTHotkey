@@ -1,4 +1,4 @@
-"""Fact Checker backend and isolated Ctrl+F16 entry point.
+"""Fact Checker backend and isolated Ctrl+F14 entry point.
 
 Uses the existing httpx dependency to call Responses without upgrading the
 shared OpenAI SDK. Importing this module does not start a listener or write logs.
@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
+DEFAULT_HOTKEY = "<ctrl>+<f14>"
 DEFAULT_MODEL = "gpt-6-luna"
 DEFAULT_EFFORT = "medium"
 
@@ -237,12 +238,17 @@ class FactChecker:
         self.client.close()
 
 
-def main():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Fact Checker with live source verification")
-    parser.add_argument("--hotkey", default="<ctrl>+<f16>")
+    parser.add_argument("--hotkey", default=DEFAULT_HOTKEY,
+                        help="Fact Checker shortcut (default: Ctrl+F14)")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--reasoning_effort", default=DEFAULT_EFFORT, choices=("none", "low", "medium", "high", "xhigh", "max"))
-    args = parser.parse_args()
+    return parser.parse_args(argv)
+
+
+def main():
+    args = parse_args()
     # Reuse the existing capture/paste protections without changing the editor.
     from hotkey import TextImprover, logger
 

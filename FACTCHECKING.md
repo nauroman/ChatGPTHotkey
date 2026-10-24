@@ -2,8 +2,10 @@
 
 After installing `requirements.txt`, activate the prepared Python environment,
 run `run_factchecking.bat`, focus the intended editable field and press
-`Ctrl+F16`. The existing capture behavior selects all text in that field and
+`Ctrl+F14`. The existing capture behavior selects all text in that field and
 replaces it with the completed report. Use a separate scratch document first.
+Restart the Fact Checker process after updating its shortcut. Ctrl+F16 is no
+longer bound by default. Ctrl+F13 and Ctrl+Shift+F13 keep their writing modes.
 
 The launcher uses the public API model `gpt-6-luna` with `medium` reasoning.
 Change `MODEL`, `REASONING_EFFORT` or `HOTKEY` in the launcher when needed.

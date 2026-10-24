@@ -1,9 +1,13 @@
+import itertools
 import json
+from pathlib import Path
+import re
 import unittest
+from unittest.mock import patch
 
 import httpx
 
-from factchecking import FactChecker, FactCheckError, parse_report, render_report
+from factchecking import DEFAULT_HOTKEY, FactChecker, FactCheckError, parse_args, parse_report, render_report
 
 
 URL = "https://science.nasa.gov/moon/"
@@ -130,6 +134,72 @@ class RequestTests(unittest.TestCase):
         with self.assertRaises(FactCheckError) as caught:
             self.backend.check("source-marker")
         self.assertNotIn("source-marker", str(caught.exception))
+
+
+class HotkeyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Import the actual router without touching the runtime log or listener.
+        with patch("logging.basicConfig"), patch("logging.handlers.RotatingFileHandler"):
+            import hotkey
+        cls.runtime = hotkey
+
+    def routers(self):
+        events = []
+        router = self.runtime.ExclusiveHotkeyRouter
+        return [router({"factcheck": DEFAULT_HOTKEY}, events.append),
+                router({"translate": "<ctrl>+<f13>",
+                        "edit": "<ctrl>+<shift>+<f13>"}, events.append)], events
+
+    def dispatch(self, presses, releases, repeat=False):
+        routers, events = self.routers()
+        for key in presses:
+            for router in routers:
+                router.press(key)
+                if repeat:
+                    router.press(key)
+            self.assertEqual(events, [])
+        for key in releases:
+            for router in routers:
+                router.release(key)
+        self.assertTrue(all(not router.pressed for router in routers))
+        return events
+
+    def test_cli_default_and_launcher_use_ctrl_f14(self):
+        self.assertEqual(DEFAULT_HOTKEY, "<ctrl>+<f14>")
+        self.assertEqual(parse_args([]).hotkey, DEFAULT_HOTKEY)
+        launcher = (Path(__file__).resolve().parents[1] / "run_factchecking.bat").read_text(encoding="utf-8")
+        configured = re.search(r'set "HOTKEY=(.+)"', launcher).group(1)
+        self.assertEqual(configured, DEFAULT_HOTKEY)
+        self.assertNotIn("f16", launcher.lower())
+
+    def test_ctrl_f14_fires_once_for_every_key_order_and_autorepeat(self):
+        key = self.runtime.keyboard.Key
+        for presses in itertools.permutations((key.ctrl, key.f14)):
+            for releases in itertools.permutations((key.ctrl, key.f14)):
+                with self.subTest(presses=presses, releases=releases):
+                    self.assertEqual(self.dispatch(presses, releases, repeat=True), ["factcheck"])
+
+    def test_old_ctrl_f16_does_not_trigger_any_mode(self):
+        key = self.runtime.keyboard.Key
+        for presses in itertools.permutations((key.ctrl, key.f16)):
+            for releases in itertools.permutations((key.ctrl, key.f16)):
+                self.assertEqual(self.dispatch(presses, releases), [])
+
+    def test_f14_requires_ctrl_and_rejects_extra_modifiers(self):
+        key = self.runtime.keyboard.Key
+        for keys in ((key.f14,), (key.shift, key.f14),
+                     (key.ctrl, key.shift, key.f14), (key.ctrl, key.alt, key.f14)):
+            for presses in itertools.permutations(keys):
+                self.assertEqual(self.dispatch(presses, tuple(reversed(presses))), [])
+
+    def test_f13_writing_modes_stay_exclusive_from_fact_checker(self):
+        key = self.runtime.keyboard.Key
+        for mode, keys in (("translate", (key.ctrl, key.f13)),
+                           ("edit", (key.ctrl, key.shift, key.f13))):
+            for presses in itertools.permutations(keys):
+                for releases in itertools.permutations(keys):
+                    self.assertEqual(self.dispatch(presses, releases), [mode])
 
 
 if __name__ == "__main__":
