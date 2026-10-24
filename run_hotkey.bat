@@ -1,14 +1,12 @@
 @echo off
+setlocal
+cd /d "%~dp0"
 REM Check if Python is installed
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo Python is not installed. Installing Python...
-    REM Download Python installer
-    curl -o python-installer.exe https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe
-    REM Install Python silently
-    start /wait python-installer.exe /quiet InstallAllUsers=1 PrependPath=1
-    REM Clean up installer
-    del python-installer.exe
+    echo Python is not available. No software was installed.
+    pause
+    exit /b 1
 )
 
 REM Set the OpenAI API key. If not provided, the environment variable OPENAI_API_KEY will be used.
@@ -16,25 +14,23 @@ set "API_KEY="
 
 REM Set the hotkey to trigger the script. Default is ctrl+f13.
 set "HOTKEY=<ctrl>+<f13>"
+REM Edit in the original language with Ctrl+Shift+F13.
+set "EDIT_HOTKEY=<ctrl>+<shift>+<f13>"
 
 REM Set the OpenAI model to use. Default is gpt-5-nano.
-set "MODEL=gpt-4.1-nano"
+set "MODEL=gpt-5-nano"
 
-REM Set the prompt for the OpenAI model. Default prompt is provided.
-set "PROMPT=The GPT's role is to correct texts to reflect educated polite American English, adjusting grammar, syntax, and idioms while preserving meaning. Translate into English if necessary. It should maintain clarity, accuracy, and a neutral tone, avoiding unnecessary changes or complex vocabulary. The GPT should not ask for clarification; it should simply provide the corrected text without any introductions or additions such as 'here is the improved version.' Text to correct:"
+REM Leave prompts empty to use the built-in translation and editing instructions.
+set "PROMPT="
+set "EDIT_PROMPT="
 
 REM Set the reasoning effort level. Options: minimal, low, medium, high. Leave empty for default (no reasoning parameter).
 set "REASONING_EFFORT=minimal"
 
-REM Initialize the arguments string
-set "ARGS="
-
-if not "%API_KEY%"=="" set "ARGS=%ARGS% --api_key %API_KEY%"
-if not "%HOTKEY%"=="" set "ARGS=%ARGS% --hotkey \"%HOTKEY%\""
-if not "%MODEL%"=="" set "ARGS=%ARGS% --model %MODEL%"
-if not "%PROMPT%"=="" set "ARGS=%ARGS% --prompt "%PROMPT%""
+REM Keep an optional existing key out of the process command line.
+if not "%API_KEY%"=="" set "OPENAI_API_KEY=%API_KEY%"
 
 REM Run the hotkey.py script with the specified arguments.
-python hotkey.py %ARGS%
+python "%~dp0hotkey.py" --hotkey "%HOTKEY%" --edit_hotkey "%EDIT_HOTKEY%" --model "%MODEL%" --prompt "%PROMPT%" --edit_prompt "%EDIT_PROMPT%" --reasoning_effort "%REASONING_EFFORT%"
 
 pause
